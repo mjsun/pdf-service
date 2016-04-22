@@ -4,7 +4,9 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
+    "bluebird": "^3.3.5",
     "cors": "^2.7.1",
+    "pdffiller": "https://github.com/mjsun/pdffiller/tarball/master",
     "redis": "^2.5.3",
     "restify": "^4.0.4"
   },
