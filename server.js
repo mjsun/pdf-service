@@ -33,7 +33,6 @@ server.use(restify.bodyParser());
 server.pre(restify.CORS()); //turn on CORS
 
 server.get('/', function(req, res, next){
-    throw new Error('This is a test crazy');
     res.send('Try /template/snapp');
 });
 
@@ -53,15 +52,35 @@ server.post('/templates/:channel', function(req, res, next){
     fs.writeFileSync(path + fileName, file);
     pdfFiller.generateFieldJson(path + fileName, null, function(err, fdfData){
         if(err){
-            //res.status(501);
             throw new Error (err);
         }
         else {
-            client.set(fileId, JSON.stringify(fdfData));
+            client.set(fileId+'_name', fileName);
+            client.set(fileId+'_tags', JSON.stringify(fdfData));
             res.send(fdfData);
         }
     });
 
+});
+
+server.get('templates/:channel/:templateId/:contentType', function(req, res, next){
+    var channel = req.params.channel,
+        templateId = req.params.templateId,
+        contentType = req.params.contentType;
+    var fileDir = './pdf/' + form.channel + '/';
+
+    if(contentType === 'form_mappings'){
+        res.send(JSON.parse(client.get(templateId+'_tags')));
+    }
+    else if(contentType === 'template') {
+        fs.readFile(fileDir+client.get(templateId+'_name'))
+            .then(function(data){
+                res.send(data);
+            })
+            .catch(function(err){
+                throw new Error(err);
+            });
+    }
 });
 
 server.post('/mergefill/:channel', function(req, res, next){
@@ -88,9 +107,8 @@ server.post('/mergefill/:channel', function(req, res, next){
     //loop body
     allPromises = _.map(body, function(form){
         //find template
-        var templateName = client.get(form.templateId)
-        var source = sourceDir + templateName,
-            dest = destDir + templateName;
+        var templateName = client.get(form.templateId+'_name');
+        var source = sourceDir + templateName, dest = destDir + templateName;
         return new Promise(function(resolve, reject){
             PDFFiller.fillForm(source, dest, form.mappings, function (error) {
                 if (error) {
