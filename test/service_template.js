@@ -25,6 +25,7 @@ before(function(done){
     done();
 });
 
+console.log(__dirname);
 describe('PDF services', function() {
 
     // Test #1
@@ -126,7 +127,6 @@ describe('PDF services', function() {
     });
 
     describe('snapp merge and file test', function(){
-
         it('merge and fill forms', function(done){
             var sampleArray = _.map(fileId, function(id){
                 return {
@@ -136,8 +136,10 @@ describe('PDF services', function() {
                 }
             });
 
-            client.post('/mergefill/snapp', sampleArray, function(err, req, res, data){
-                console.log(data);
+            client.post('/mergefill/snapp', {sampleArray: sampleArray}, function(err, req, res, data){
+                if(err){
+                    throw new Error(err);
+                }
                 done();
             });
 
