@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
+  "repository": "https://github.com/mjsun/pdf-service/master",
   "dependencies": {
     "bluebird": "^3.3.5",
     "chai": "^3.5.0",
