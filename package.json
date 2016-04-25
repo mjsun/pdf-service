@@ -5,16 +5,21 @@
   "main": "server.js",
   "dependencies": {
     "bluebird": "^3.3.5",
+    "chai": "^3.5.0",
     "cors": "^2.7.1",
+    "lodash": "^4.11.1",
+    "mocha": "^2.4.5",
+    "path": "^0.12.7",
     "pdf-merge": "0.0.4",
     "pdffiller": "https://github.com/mjsun/pdffiller/tarball/master",
+    "q-io": "^1.13.2",
     "redis": "^2.5.3",
     "restify": "^4.0.4"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon start.js"
   },
   "author": "",
   "license": "ISC"
