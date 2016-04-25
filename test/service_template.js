@@ -1,9 +1,10 @@
+//Please run the server before running the test
 var restify = require('restify');
-var server = require('../server');
 var client = restify.createJsonClient({
     version: '*',
     url: 'http://127.0.0.1:1375'
 });
+
 var _ = require('lodash');
 var fs = require('fs');
 var FS = require('q-io/fs');
@@ -19,16 +20,11 @@ var formMapping = {
     OwnerName: 'ChiaChia'
 };
 var sampleTemplates = ['test_template.pdf', 'test_template_1.pdf', 'test_template_2.pdf'];
+var sampleFolder = '';
 var resultIDs = [];
-before(function(done){
-    server.StartServer();
-    done();
-});
 
-console.log(__dirname);
 describe('PDF services', function() {
 
-    // Test #1
     describe('200 response check', function() {
         it('should get a 200 response', function(done) {
             client.get('/', function(err, req, res, data) {
@@ -46,8 +42,9 @@ describe('PDF services', function() {
     });
 
     describe('snapp templates test', function(){
+
         before(function(done){
-            fs.readFile('./pdf/test_template.pdf', function(err, data){
+            fs.readFile(__dirname + '/pdf/test_template.pdf', function(err, data){
                 if(err){
                     throw new Error(err);
                 }
@@ -62,7 +59,7 @@ describe('PDF services', function() {
                     throw new Error(err);
                 }
                 else {
-                    FS.exists('./pdf/snapp/test_template.pdf')
+                    FS.exists(__dirname + '/../pdf/snapp/test_template.pdf')
                         .then(function(status){
                             if(!status){
                                 throw new Error('File is not generated.');
@@ -80,7 +77,7 @@ describe('PDF services', function() {
                     throw new Error(err);
                 }
                 else {
-                    FS.exists('./pdf/snapp/test_template_1.pdf')
+                    FS.exists(__dirname + '/../pdf/snapp/test_template_1.pdf')
                         .then(function(status){
                             if(!status){
                                 throw new Error('File is not generated.');
@@ -98,7 +95,7 @@ describe('PDF services', function() {
                     throw new Error(err);
                 }
                 else {
-                    FS.exists('./pdf/snapp/test_template_2.pdf')
+                    FS.exists(__dirname + '/../pdf/snapp/test_template_2.pdf')
                         .then(function(status){
                             if(!status){
                                 throw new Error('File is not generated.');
@@ -140,9 +137,24 @@ describe('PDF services', function() {
                 if(err){
                     throw new Error(err);
                 }
+                console.log(data);
                 done();
             });
 
         });
     });
+
+    after(function(done){
+        var sampleTemplates = ['test_template.pdf', 'test_template_1.pdf', 'test_template_2.pdf'];
+        var rmfiles = _.map(sampleTemplates, function(name){
+            return __dirname + '/../pdf/snapp/' + name;
+        });
+        var allPromises = _.map(rmfiles, function(dir){
+            return FS.removeTree(dir);
+        });
+        return Promise.all(allPromises).then(function(){
+            done();
+        });
+    });
+
 });

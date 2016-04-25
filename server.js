@@ -173,6 +173,11 @@ exports.StartServer = function(){
                 return FS.read(mergedFilePath);
             })
             .then(function(data){
+                return FS.removeTree(destDir).then(function(){
+                    return data;
+                });
+            })
+            .then(function(data){
                 res.send(data);
             })
             .catch(function(err){
