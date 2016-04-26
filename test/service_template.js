@@ -116,7 +116,9 @@ describe('PDF services', function() {
 
         it('get a template content', function(done){
             client.get('/templates/snapp/' + fileId[0] + '/template', function(err, req, res, data){
-                expect(new Buffer(data, 'base64').toString()).to.equal(readTemplate.toString());
+                //console.log(data);
+                //expect(new Buffer(data, 'base64').toString()).to.equal(readTemplate.toString()); //this is for fs.readFile
+                expect(new Buffer(data).toString()).to.equal(readTemplate.toString());
                 done();
             });
         });
@@ -137,7 +139,8 @@ describe('PDF services', function() {
                 if(err){
                     throw new Error(err);
                 }
-                console.log(data);
+                //console.log(data);
+                expect(data).to.be.a('string');
                 done();
             });
 

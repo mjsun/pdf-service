@@ -5,11 +5,12 @@ exports.StartServer = function(){
     var client = redis.createClient();
     var pdfFiller = require('pdffiller');
     var Promise = require('bluebird');
+    var Q = require('q');
     var fs = require('fs');
     var FS = require('q-io/fs');
     var PDFMerge = require('pdf-merge');
     var _ =require('lodash');
-    var mkdir = Promise.promisify(fs.mkdir);
+
     client.on('connect', function(){
         console.log('Redis Connected');
     });
@@ -38,7 +39,7 @@ exports.StartServer = function(){
             s4() + '_' + s4() + s4() + s4();
     }
 
-    var channels = ['snapp', 'haven'];
+    var channels = ['snapp', 'haven']; //In the future to validate incomming channel
 
     var server = restify.createServer();
 
@@ -98,14 +99,13 @@ exports.StartServer = function(){
                 if(err){
                     throw new Error(err);
                 }
-
-                fs.readFile(fileDir + fileName, function(err, data){
-
-                    if(err) {
+                FS.read(fileDir + fileName)
+                    .then(function(data){
+                        res.send(data);
+                    })
+                    .catch(function(err){
                         throw new Error(err);
-                    }
-                    res.send(data);
-                });
+                    });
             });
 
         }
@@ -125,7 +125,7 @@ exports.StartServer = function(){
         });
 
         //merge
-        mkdir(destDir)
+        FS.makeDirectory(destDir)
             .then(function(){
                 var allPromises = _.map(body, function(form){
                     return new Promise(function(resolve, reject){
