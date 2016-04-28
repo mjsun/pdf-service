@@ -7,6 +7,7 @@
   "dependencies": {
     "bluebird": "^3.3.5",
     "chai": "^3.5.0",
+    "connect-busboy": "0.0.2",
     "cors": "^2.7.1",
     "lodash": "^4.11.1",
     "mocha": "^2.4.5",
@@ -17,7 +18,10 @@
     "redis": "^2.5.3",
     "restify": "^4.0.4"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "proxyquire": "^1.7.4",
+    "sinon": "^1.17.3"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon start.js"

@@ -1,17 +1,20 @@
 //Please run the server before running the test
 var restify = require('restify');
+var _ = require('lodash');
+var fs = require('fs');
+var FS = require('q-io/fs');
+var path = require('path');
+var sinon = require('sinon');
+var expect = require('chai').expect;
+var proxyquire = require('proxyquire');
+
+var sandbox = sinon.sandbox.create();
+
 var client = restify.createJsonClient({
     version: '*',
     url: 'http://127.0.0.1:1375'
 });
 
-var _ = require('lodash');
-var fs = require('fs');
-var FS = require('q-io/fs');
-var readTemplate;
-var path = require('path');
-var fileId = [];
-var expect = require('chai').expect;
 var formMapping = {
     InsuredFirstName: 'Mike',
     InsuredMiddleName: 'Erwin',
@@ -19,14 +22,27 @@ var formMapping = {
     InsuredSuffix: 'Jr.',
     OwnerName: 'ChiaChia'
 };
+
+var readTemplate;
+var fileId = [];
 var sampleTemplates = ['test_template.pdf', 'test_template_1.pdf', 'test_template_2.pdf'];
 var sampleFolder = '';
 var resultIDs = [];
+var server = {};
+
+var noop = function(){};
+var res = req = {};
+
+before(function() {
+    clientStub = sinon.stub(client);
+});
 
 describe('PDF services', function() {
 
     describe('200 response check', function() {
-        it('should get a 200 response', function(done) {
+        
+        var redis = proxyquire('../server', 'redis')
+        it.only('should get a 200 response', function(done) {
             client.get('/', function(err, req, res, data) {
                 if (err) {
                     throw new Error(err);

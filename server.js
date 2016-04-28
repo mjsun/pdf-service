@@ -1,15 +1,23 @@
 exports.StartServer = function(){
 
     var restify = require('restify');
-    var redis = require('redis');
-    var client = redis.createClient();
-    var pdfFiller = require('pdffiller');
+
     var Promise = require('bluebird');
-    var Q = require('q');
+    var redis = require('redis');
+    var client = Promise.promisifyAll(redis.createClient());
+    var pdfFiller = require('pdffiller');
     var fs = require('fs');
     var FS = require('q-io/fs');
     var PDFMerge = require('pdf-merge');
-    var _ =require('lodash');
+    var _ = require('lodash');
+    var pdfRouter = require('./lib/pdf-router');
+
+    var middlewares = {
+        busboy: require('connect-busboy'),
+        bodyParser: restify.bodyParser
+    };
+
+    var channels = ['snapp', 'haven']; //In the future to validate incomming channel
 
     client.on('connect', function(){
         console.log('Redis Connected');
@@ -18,17 +26,7 @@ exports.StartServer = function(){
     client.on('error', function(err){
         console.log('Error ' + err);
     });
-
-    function generateId() {
-        function s4() {
-            return Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1);
-        }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
-    }
-
+    
     function generateFsId() {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000)
@@ -39,50 +37,16 @@ exports.StartServer = function(){
             s4() + '_' + s4() + s4() + s4();
     }
 
-    var channels = ['snapp', 'haven']; //In the future to validate incomming channel
-
     var server = restify.createServer();
-
-    server.use(restify.bodyParser());
     server.pre(restify.CORS()); //turn on CORS
 
-    server.get('/', function(req, res, next){
+    server.get('/', middlewares.bodyParser(), function(req, res, next){
         res.send('Please choose valid API entry point');
     });
 
-    server.post('/templates/:channel', function(req, res, next){
-        var channel = req.params.channel;
-        var body = req.body,
-            file = body.file,
-            fileName = body.fileName;
+    server.post('/templates/:channel', middlewares.busboy(), pdfRouter.upload.bind(client));
 
-        var path = './pdf/' + channel + '/';
-
-        if(!fs.existsSync(path)) {
-            fs.mkdirSync(path);
-        }
-
-        var fileId = generateId();
-        var dest = path + fileName;
-
-        FS.write(dest, file)
-            .then(function(){
-                pdfFiller.generateFieldJson(path + fileName, null, function(err, fdfData){
-                    if(err){
-                        throw new Error (err);
-                    }
-                    else {
-                        client.set(fileId+'_name', fileName, function(){
-                            client.set(fileId+'_tags', JSON.stringify(fdfData), function(){
-                                res.send(fileId);
-                            })
-                        });
-                    }
-                });
-            });
-    });
-
-    server.get('templates/:channel/:templateId/:contentType', function(req, res, next){
+    server.get('templates/:channel/:templateId/:contentType', middlewares.bodyParser(), function(req, res, next){
         var channel = req.params.channel,
             templateId = req.params.templateId,
             contentType = req.params.contentType;
@@ -111,7 +75,7 @@ exports.StartServer = function(){
         }
     });
 
-    server.post('/mergefill/:channel', function(req, res, next){
+    server.post('/mergefill/:channel', middlewares.bodyParser(), function(req, res, next){
         var channel = req.params.channel;
         var body = req.body.sampleArray; //array of template id, order, metadata
         var dateNow = Date.now();
