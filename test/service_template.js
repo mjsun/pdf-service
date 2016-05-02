@@ -6,6 +6,7 @@ var client = restify.createJsonClient({
 });
 
 var _ = require('lodash');
+var jwt = require('jsonwebtoken');
 var fs = require('fs');
 var FS = require('q-io/fs');
 var readTemplate;
@@ -19,15 +20,34 @@ var formMapping = {
     InsuredSuffix: 'Jr.',
     OwnerName: 'ChiaChia'
 };
+var JWT_SECRET_K = 'SafeHavenPDF';
 var sampleTemplates = ['test_template.pdf', 'test_template_1.pdf', 'test_template_2.pdf'];
 var sampleFolder = '';
 var resultIDs = [];
 
+var options = body = {};
+
 describe('PDF services', function() {
+  beforeEach(function() {
+    options =  {
+      headers: {
+        authorization: ''
+      }
+    };
+  });
 
     describe('200 response check', function() {
         it('should get a 200 response', function(done) {
-            client.get('/', function(err, req, res, data) {
+          var token = jwt.sign({}, JWT_SECRET_K);
+
+          options = {
+            path: '/',
+            headers: {
+              authorization: "Bearer " + token
+            } // */
+          };
+
+            client.get(options, function(err, req, res, data) {
                 if (err) {
                     throw new Error(err);
                 }
@@ -53,8 +73,26 @@ describe('PDF services', function() {
             });
         });
 
+      beforeEach(function(done) {
+        body = {};
+        options = {
+          headers: {
+            authorization: ''
+          }
+        };
+        done();
+      });
+
         it('upload a template',function(done){
-            client.post('/templates/snapp', {fileName: 'test_template.pdf', file: readTemplate}, function(err, req, res, data){
+          var token = jwt.sign({}, JWT_SECRET_K);
+          body = {
+            fileName: 'test_template.pdf',
+            file: readTemplate
+          };
+          options.path = '/templates/snapp';
+          options.headers.authorization = 'Bearer ' + token;
+
+            client.post(options, body, function(err, req, res, data){
                 if (err) {
                     throw new Error(err);
                 }
@@ -72,7 +110,15 @@ describe('PDF services', function() {
         });
 
         it('upload a template 1',function(done){
-            client.post('/templates/snapp', {fileName: 'test_template_1.pdf', file: readTemplate}, function(err, req, res, data){
+
+          var token = jwt.sign({}, JWT_SECRET_K);
+          body = {
+            fileName: 'test_template_1.pdf',
+            file: readTemplate
+          };
+          options.path = '/templates/snapp';
+          options.headers.authorization = 'Bearer ' + token;
+            client.post(options, body, function(err, req, res, data){
                 if (err) {
                     throw new Error(err);
                 }
@@ -90,7 +136,16 @@ describe('PDF services', function() {
         });
 
         it('upload a template 2',function(done){
-            client.post('/templates/snapp', {fileName: 'test_template_2.pdf', file: readTemplate}, function(err, req, res, data){
+
+          var token = jwt.sign({}, JWT_SECRET_K);
+          body = {
+            fileName: 'test_template_2.pdf',
+            file: readTemplate
+          };
+          options.path = '/templates/snapp';
+          options.headers.authorization = 'Bearer ' + token;
+
+            client.post(options, body, function(err, req, res, data){
                 if (err) {
                     throw new Error(err);
                 }
@@ -108,14 +163,23 @@ describe('PDF services', function() {
         });
 
         it('get a template metadata', function(done){
-            client.get('/templates/snapp/' + fileId[0] + '/form_mappings', function(err, req, res, data){
+          var token = jwt.sign({}, JWT_SECRET_K);
+          options.path = '/templates/snapp/' + fileId[0] + '/form_mappings';
+          options.headers.authorization = 'Bearer ' + token;
+
+            client.get(options, function(err, req, res, data){
                 expect(Array.isArray(data)).to.equal(true);
                 done();
             });
         });
 
         it('get a template content', function(done){
-            client.get('/templates/snapp/' + fileId[0] + '/template', function(err, req, res, data){
+
+          var token = jwt.sign({}, JWT_SECRET_K);
+          options.path = '/templates/snapp/' + fileId[0] + '/template';
+          options.headers.authorization = 'Bearer ' + token;
+
+            client.get(options, function(err, req, res, data){
                 //console.log(data);
                 //expect(new Buffer(data, 'base64').toString()).to.equal(readTemplate.toString()); //this is for fs.readFile
                 expect(new Buffer(data).toString()).to.equal(readTemplate.toString());
@@ -135,7 +199,14 @@ describe('PDF services', function() {
                 }
             });
 
-            client.post('/mergefill/snapp', {sampleArray: sampleArray}, function(err, req, res, data){
+          var token = jwt.sign({}, JWT_SECRET_K);
+          body = {
+            sampleArray: sampleArray
+          };
+          options.path = '/mergefill/snapp';
+          options.headers.authorization = 'Bearer ' + token;
+
+            client.post(options, body, function(err, req, res, data){
                 if(err){
                     throw new Error(err);
                 }
@@ -158,6 +229,6 @@ describe('PDF services', function() {
         return Promise.all(allPromises).then(function(){
             done();
         });
-    });
+    });// */
 
 });

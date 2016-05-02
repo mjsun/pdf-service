@@ -15,7 +15,8 @@
     "pdffiller": "https://github.com/mjsun/pdffiller/tarball/master",
     "q-io": "^1.13.2",
     "redis": "^2.5.3",
-    "restify": "^4.0.4"
+    "restify": "^4.0.4",
+    "restify-jwt": "^0.4.0"
   },
   "devDependencies": {},
   "scripts": {
