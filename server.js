@@ -87,7 +87,6 @@ exports.StartServer = function () {
 
     FS.write(dest, file)
       .then(function () {
-        console.log('filling...');
         pdfFiller.generateFieldJson(path + fileName, null, function (err, fdfData) {
           if (err) {
             throw new Error(err);
